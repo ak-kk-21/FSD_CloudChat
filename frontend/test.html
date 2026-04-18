@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Backend</title>
+</head>
+<body>
+    <h1>Backend Test</h1>
+    <button onclick="testBackend()">Test Backend</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testBackend() {
+            try {
+                const response = await fetch('http://localhost:8080/api/test/hello');
+                const text = await response.text();
+                document.getElementById('result').textContent = 'Success: ' + text;
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
