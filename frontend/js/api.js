@@ -118,6 +118,14 @@ async function joinServer(serverId) {
     return await apiRequest(`/servers/${serverId}/join`, 'POST');
 }
 
+async function joinServerByInvite(code) {
+    return await apiRequest(`/servers/invite/${code}/join`, 'POST');
+}
+
+async function leaveServer(serverId) {
+    return await apiRequest(`/servers/${serverId}/leave`, 'POST');
+}
+
 // Message API Calls
 async function getMessages(channelId) {
     return await apiRequest(`/channels/${channelId}/messages`, 'GET');

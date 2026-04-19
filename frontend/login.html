@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div class="mesh-gradient-bg">
+        <div class="mesh-ball" style="width: 400px; height: 400px; background: var(--accent-primary); top: -100px; left: -100px;"></div>
+        <div class="mesh-ball" style="width: 500px; height: 500px; background: var(--accent-secondary); bottom: -150px; right: -150px;"></div>
+    </div>
+
     <div class="auth-container">
         <div class="auth-box">
             <h1>CloudChat</h1>
@@ -19,7 +24,7 @@
             <form id="login-form" class="auth-form active">
                 <input type="email" id="login-email" placeholder="Email" required>
                 <input type="password" id="login-password" placeholder="Password" required>
-                <button type="submit">Login</button>
+                <button type="submit">Unlock Access</button>
                 <div id="login-error" class="error-message"></div>
             </form>
             
@@ -28,7 +33,7 @@
                 <input type="text" id="register-username" placeholder="Username" required>
                 <input type="email" id="register-email" placeholder="Email" required>
                 <input type="password" id="register-password" placeholder="Password" required>
-                <button type="submit">Register</button>
+                <button type="submit">Create Identity</button>
                 <div id="register-error" class="error-message"></div>
             </form>
         </div>

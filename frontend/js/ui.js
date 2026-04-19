@@ -17,7 +17,9 @@ function renderServers() {
         if (currentServerId === server.id) {
             serverElement.classList.add('selected');
         }
+        
         serverElement.innerHTML = `<div class="server-icon">${server.name.charAt(0).toUpperCase()}</div>`;
+        serverElement.title = server.name;
         serverElement.onclick = () => selectServer(server.id);
         serversList.appendChild(serverElement);
     });
@@ -43,10 +45,29 @@ async function loadChannels(serverId) {
         
         // Update header
         const server = servers.find(s => s.id === serverId);
-        document.getElementById('current-server-name').innerHTML = `
-            <h3>${server ? server.name : 'Server'}</h3>
-            <button id="add-channel-btn" class="icon-btn" onclick="showChannelModal()">+</button>
-        `;
+        const nameText = document.getElementById('current-server-name-text');
+        if (nameText) nameText.textContent = server ? server.name : 'Server';
+        
+        // Show buttons
+        const addChannelBtn = document.getElementById('add-channel-btn');
+        const leaveServerBtn = document.getElementById('leave-server-btn');
+        if (addChannelBtn) addChannelBtn.style.display = 'block';
+        if (leaveServerBtn) leaveServerBtn.style.display = 'block';
+        
+        // Show invite code if available
+        const inviteDisplay = document.getElementById('server-invite-code-display');
+        if (inviteDisplay && server && server.inviteCode) {
+            inviteDisplay.innerHTML = `
+                <div class="invite-pill" onclick="copyTextToClipboard('${server.inviteCode}')" title="Click to copy invite code">
+                    <span>Invite:</span>
+                    <strong>${server.inviteCode}</strong>
+                    <span class="copy-icon">📋</span>
+                </div>
+            `;
+            inviteDisplay.style.display = 'block';
+        } else if (inviteDisplay) {
+            inviteDisplay.style.display = 'none';
+        }
         
         // Select first channel if available
         if (channels.length > 0) {
@@ -127,10 +148,13 @@ function createMessageElement(message) {
     
     messageDiv.className = `message ${isOwn ? 'message-own' : 'message-other'}`;
     
-    const timestamp = new Date(message.timestamp).toLocaleTimeString();
+    const timestamp = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const avatarChar = message.senderName.charAt(0).toUpperCase();
     
     messageDiv.innerHTML = `
-        <div class="message-header">${message.senderName}</div>
+        <div class="message-header">
+            <span class="sender-name">${message.senderName}</span>
+        </div>
         <div class="message-content">
             <p>${escapeHtml(message.content)}</p>
         </div>
@@ -182,12 +206,16 @@ function sendMessage() {
 
 // Create server modal functions
 function showServerModal() {
+    document.getElementById('server-name').value = '';
+    document.getElementById('server-is-private').checked = false;
+    document.getElementById('server-create-success').style.display = 'none';
+    document.getElementById('create-server-btn').style.display = 'block';
     document.getElementById('server-modal').style.display = 'flex';
 }
 
 async function handleCreateServer() {
     const name = document.getElementById('server-name').value.trim();
-    const iconUrl = document.getElementById('server-icon').value.trim();
+    const isPrivate = document.getElementById('server-is-private').checked;
     
     if (!name) {
         alert('Server name is required');
@@ -195,13 +223,116 @@ async function handleCreateServer() {
     }
     
     try {
-        await createServer({ name, iconUrl });
+        const result = await createServer({ 
+            name: name,
+            isPublic: !isPrivate
+        });
         await loadServers();
-        closeModal('server-modal');
-        document.getElementById('server-name').value = '';
-        document.getElementById('server-icon').value = '';
+        
+        // Display success UI
+        document.getElementById('create-server-btn').style.display = 'none';
+        const successDiv = document.getElementById('server-create-success');
+        document.getElementById('new-server-invite-code').textContent = result.inviteCode;
+        successDiv.style.display = 'block';
+        
+        // Select the newly created server
+        await selectServer(result.id);
+        
     } catch (error) {
         alert('Failed to create server: ' + error.message);
+    }
+}
+
+async function handleLeaveServer() {
+    if (!currentServerId) return;
+    
+    const server = servers.find(s => s.id === currentServerId);
+    if (!confirm(`Are you sure you want to leave ${server ? server.name : 'this server'}?`)) {
+        return;
+    }
+    
+    try {
+        await leaveServer(currentServerId);
+        currentServerId = null;
+        localStorage.removeItem('selectedServerId');
+        
+        // Hide channel items
+        document.getElementById('channels-list').innerHTML = '';
+        document.getElementById('current-server-name-text').textContent = 'Select a server';
+        document.getElementById('add-channel-btn').style.display = 'none';
+        document.getElementById('leave-server-btn').style.display = 'none';
+        document.getElementById('server-invite-code-display').style.display = 'none';
+        
+        await loadServers();
+    } catch (error) {
+        alert('Failed to leave server: ' + error.message);
+    }
+}
+
+function copyInviteToClipboard() {
+    const code = document.getElementById('new-server-invite-code').textContent;
+    copyTextToClipboard(code);
+}
+
+function copyTextToClipboard(text) {
+    // Robust clipboard fallback for incognito/local-file mode
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Invite code copied to clipboard!');
+        }).catch(err => {
+            fallbackCopy(text);
+        });
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Ensure the textarea is off-screen
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            alert('Invite code copied to clipboard!');
+        } else {
+            alert('Failed to copy. Please copy manually.');
+        }
+    } catch (err) {
+        alert('Failed to copy. Please copy manually.');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+
+
+function showJoinInviteModal() {
+    document.getElementById('invite-code-input').value = '';
+    document.getElementById('join-invite-modal').style.display = 'flex';
+}
+
+async function handleJoinViaInvite() {
+    const code = document.getElementById('invite-code-input').value.trim();
+    if (!code) {
+        alert('Please enter an invite code');
+        return;
+    }
+    try {
+        await joinServerByInvite(code);
+        await loadServers();
+        closeModal('join-invite-modal');
+    } catch (error) {
+        alert('Failed to join server: ' + error.message);
     }
 }
 
