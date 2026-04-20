@@ -10,7 +10,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class AuthController {
     
     @Autowired
@@ -77,5 +77,11 @@ public class AuthController {
         response.put("message", "Login successful");
         
         return ResponseEntity.ok(response);
+    }
+    
+    // DEBUG: Get all users (remove in production)
+    @GetMapping("/debug/users")
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

@@ -6,10 +6,12 @@ import com.cloudchat.backend.model.User;
 import com.cloudchat.backend.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/test")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class TestController {
     
     @Autowired
@@ -18,6 +20,14 @@ public class TestController {
     @GetMapping("/hello")
     public String hello() {
         return "CloudChat Backend is running!";
+    }
+    
+    @GetMapping("/health")
+    public Map<String, String> health() {
+        Map<String, String> status = new HashMap<>();
+        status.put("status", "UP");
+        status.put("message", "Service is running");
+        return status;
     }
     
     @PostMapping("/users")
