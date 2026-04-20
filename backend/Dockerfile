@@ -1,12 +1,14 @@
-# Build stage
-FROM gradle:7.4.2-jdk17 AS build
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-RUN gradle build --no-daemon -x test
+# Use Eclipse Temurin Java 17 runtime (official replacement for openjdk)
+FROM eclipse-temurin:17-jdk-alpine
 
-# Run stage
-FROM openjdk:17-jdk-slim
+# Set working directory inside container
+WORKDIR /app
+
+# Copy the JAR file from build/libs folder
+COPY build/libs/*.jar app.jar
+
+# Expose port 8080
 EXPOSE 8080
-RUN mkdir /app
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application.jar
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/spring-boot-application.jar"]
+
+# Command to run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
