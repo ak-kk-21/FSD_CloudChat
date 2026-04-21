@@ -4,7 +4,7 @@ let isConnected = false;
 
 // Connect to WebSocket
 function connectWebSocket() {
-    const socket = new SockJS('http://localhost:8080/ws');
+    const socket = new SockJS('https://fsd-cloudchat.onrender.com/ws');
     stompClient = Stomp.over(socket);
     
     stompClient.connect({}, onConnected, onError);
