@@ -35,4 +35,8 @@ RUN ./gradlew build -x test
 EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["java", "-jar", "build/libs/*.jar"]
+# After the build step, copy and rename the JAR
+RUN cp build/libs/*.jar app.jar
+
+# Run the application with fixed name
+ENTRYPOINT ["java", "-jar", "app.jar"]
