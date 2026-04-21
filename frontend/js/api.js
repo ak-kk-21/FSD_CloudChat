@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'https://fsd-cloudchat.onrender.com';
+const API_BASE_URL = 'https://fsd-cloudchat.onrender.com/api';
 
 // Store current user data
 let currentUser = {
