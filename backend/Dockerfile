@@ -4,39 +4,31 @@ FROM eclipse-temurin:17-jdk-alpine
 # Set working directory inside container
 WORKDIR /app
 
-# Copy only the files needed for dependency resolution
+# Copy gradle files
 COPY build.gradle .
 COPY settings.gradle .
+COPY gradle gradle
+COPY gradlew gradlew
+COPY gradlew.bat gradlew.bat
 
 # Copy source code
 COPY src src
 
-# Create gradle wrapper directory and download wrapper
-RUN mkdir -p gradle/wrapper
+# Make gradlew executable
+RUN chmod +x gradlew
+
+# Download gradle wrapper if needed
 RUN apk add --no-cache curl
-RUN curl -L -o gradle/wrapper/gradle-wrapper.jar https://github.com/gradle/gradle/raw/v8.14.0/gradle/wrapper/gradle-wrapper.jar
+RUN ./gradlew --version || true
 
-# Create gradle-wrapper.properties with Gradle 8.14
-RUN echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties && \
-    echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties && \
-    echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.14-bin.zip" >> gradle/wrapper/gradle-wrapper.properties && \
-    echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties && \
-    echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-
-# Create a simple gradlew script
-RUN echo '#!/bin/sh' > gradlew && \
-    echo 'java -cp gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain "$@"' >> gradlew && \
-    chmod +x gradlew
-
-# Build the application
+# Build the application (skip tests)
 RUN ./gradlew build -x test
+
+# Copy the built JAR to a fixed name
+RUN cp build/libs/*.jar app.jar
 
 # Expose port 8080
 EXPOSE 8080
 
 # Run the application
-# After the build step, copy and rename the JAR
-RUN cp build/libs/*.jar app.jar
-
-# Run the application with fixed name
 ENTRYPOINT ["java", "-jar", "app.jar"]
