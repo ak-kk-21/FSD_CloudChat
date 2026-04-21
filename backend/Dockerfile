@@ -14,12 +14,12 @@ COPY src src
 # Create gradle wrapper directory and download wrapper
 RUN mkdir -p gradle/wrapper
 RUN apk add --no-cache curl
-RUN curl -L -o gradle/wrapper/gradle-wrapper.jar https://github.com/gradle/gradle/raw/v8.5.0/gradle/wrapper/gradle-wrapper.jar
+RUN curl -L -o gradle/wrapper/gradle-wrapper.jar https://github.com/gradle/gradle/raw/v8.14.0/gradle/wrapper/gradle-wrapper.jar
 
-# Create gradle-wrapper.properties
+# Create gradle-wrapper.properties with Gradle 8.14
 RUN echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties && \
     echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties && \
-    echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip" >> gradle/wrapper/gradle-wrapper.properties && \
+    echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.14-bin.zip" >> gradle/wrapper/gradle-wrapper.properties && \
     echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties && \
     echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
 
